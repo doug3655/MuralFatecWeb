@@ -1,0 +1,12 @@
+.fundo-cadastro{
+    max-width: 500px;
+    max-height: 500px;
+    background-color: rgb(34 155 155);
+    width: 100%;
+    height: 100%;
+    border-radius: 10px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
