@@ -1,5 +1,5 @@
 import "./style.css"
-import { Typography  } from "@mui/material";
+import { Typography,Box  } from "@mui/material";
 
 export default function Home(){
     return (   
