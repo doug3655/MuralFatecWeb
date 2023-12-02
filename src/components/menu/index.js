@@ -6,6 +6,8 @@ import { useState } from 'react';
 export default function Menu(){
     const [grupoMenu, setGrupoMenu] = useState();
     const [usuarioMenu, setUsuarioMenu] = useState();
+    let usuario = JSON.parse(sessionStorage.getItem("usuario"));
+    let perfilUsuario = usuario.id_tp_perfil_usuario;
 
     function handleAlterarEstadoMenu(menu){
         switch (menu) {
@@ -48,7 +50,7 @@ export default function Menu(){
                 </ListItemButton>
                 <Collapse in={usuarioMenu} timeout="auto">
                     <List>
-                        <ListItemButton component={Link} to="/GrupoCadastro" sx={{ pl: 4 }}>
+                        <ListItemButton component={Link} to="/DadosUsuario" sx={{ pl: 4 }}>
                             <ListItemText>
                                 <Typography>
                                     Alterar dados
@@ -85,6 +87,7 @@ export default function Menu(){
                         </ListItemButton>
                     </List>
                 </Collapse>
+                {perfilUsuario===3 && 
                 <ListItemButton component={Link} to="/CentralAprovacoes">
                     <ListItemText>
                         <Typography>
@@ -92,6 +95,8 @@ export default function Menu(){
                         </Typography>
                     </ListItemText>
                 </ListItemButton>
+                }
+                
                 <ListItemButton component={Link} to="/Login">
                     <ListItemText>
                         <Typography>

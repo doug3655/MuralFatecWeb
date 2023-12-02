@@ -2,10 +2,12 @@ import "./style.css"
 import { useState } from 'react';
 import { Button,TextField,Select,MenuItem,FormControl,InputLabel,FormGroup,FormControlLabel,Checkbox,FormLabel,Stack,Typography  } from "@mui/material";
 
+
 export default function GrupoVisualizar(){
     const [grupoCurso, setGrupoCurso] = useState("ADS");
     const [grupoPeriodo, setGrupoPeriodo] = useState("Matutino");
     const [grupoOrientador, setGrupoOrientador] = useState("Lobianco");
+    
 
     return (   
         <div className="fundo-cadastro">
