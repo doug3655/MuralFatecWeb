@@ -67,8 +67,12 @@ function App() {
 
 function PrivateRoute({ children,perfil }) {
   const toastProps = useContext(ContextoToastConfig);
-  let usuario = JSON.parse(sessionStorage.getItem("usuario"));
-  let perfilUsuario = usuario.id_tp_perfil_usuario
+  let usuarioSession = sessionStorage.getItem("usuario");
+  if(usuarioSession === null){
+    return <Navigate to="/Login" />
+  }
+  let usuario = JSON.parse(usuarioSession);
+  let perfilUsuario = usuario.id_tp_perfil_usuario;
   if(typeof  perfilUsuario === "undefined"){
     toast.error("Perfil do usuario não encontrado",{toastProps});
     return <Navigate to="/Login" />

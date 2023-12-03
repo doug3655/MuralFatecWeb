@@ -1,13 +1,27 @@
 import "./style.css"
-import {Link} from "react-router-dom"
+import {Link,useNavigate} from "react-router-dom"
 import { Drawer, List, ListItemButton,ListItemText,Typography,Collapse} from "@mui/material"
-import { useState } from 'react';
+import { useState,useEffect } from 'react';
 
 export default function Menu(){
     const [grupoMenu, setGrupoMenu] = useState();
     const [usuarioMenu, setUsuarioMenu] = useState();
-    let usuario = JSON.parse(sessionStorage.getItem("usuario"));
-    let perfilUsuario = usuario.id_tp_perfil_usuario;
+    const [perfilUsuario,setPerfilUsuario] = useState(0);
+    const navegate = useNavigate();
+
+    useEffect(() => {
+        let usuarioSession = sessionStorage.getItem("usuario");
+        if(usuarioSession === null){
+            navegate('/Login');
+        }else{
+            let usuarioParse = JSON.parse(usuarioSession);
+            setPerfilUsuario(usuarioParse);
+            if(typeof  perfilUsuario === "undefined"){
+                navegate('/Login');
+            }
+        }
+        // eslint-disable-next-line
+    }, []); 
 
     function handleAlterarEstadoMenu(menu){
         switch (menu) {

@@ -27,7 +27,7 @@ export default function CadastroUsuario(){
     var validacao = true;
 
     function verificaLogin(){
-        usuarioSession = sessionStorage.getItem("usuario")
+        usuarioSession = sessionStorage.getItem("usuario");
         if(usuarioSession){
             let usuario = JSON.parse(usuarioSession);
             setNome(usuario.nm_usuario);
@@ -64,13 +64,13 @@ export default function CadastroUsuario(){
         validaSenha();
         if(validacao){
             try{
+                usuarioSession = sessionStorage.getItem("usuario");
                 let usuario = JSON.parse(usuarioSession);
                 let payload = {
                     id_usuario:usuario.id_usuario,
-                    nm_senha:Senha,
-                    so_senha:true
+                    nm_senha:Senha
                 }
-                const response = await fetch(process.env.REACT_APP_BACKEND_URL+"altera-usuario", {
+                const response = await fetch(process.env.REACT_APP_BACKEND_URL+"alterar-usuario/"+1, {
                     method: "POST",
                     body: JSON.stringify(payload),
                     headers: {
@@ -83,7 +83,8 @@ export default function CadastroUsuario(){
                     toast.error("Erro ao alterar a senha",{toastProps})
                 }
             }catch(error) {
-                toast.error("Erro ao alterar a senha",{toastProps})
+                console.log(error)
+                toast.error("Erro ao alterar a senha do usuario",{toastProps})
             }
         }
     }
@@ -98,7 +99,7 @@ export default function CadastroUsuario(){
                 nm_senha:Senha
             }
             try {
-                const response = await fetch(process.env.REACT_APP_BACKEND_URL+"registrar-usuario", {
+                const response = await fetch(process.env.REACT_APP_BACKEND_URL+"alterar-usuario/"+2, {
                     method: "POST",
                     body: JSON.stringify(payload),
                     headers: {
@@ -106,9 +107,9 @@ export default function CadastroUsuario(){
                     }
                 })
                 if (response.ok) {
-                    toast.success("Senha alterada com sucesso",{toastProps})
+                    toast.success("Dados alterados com sucesso",{toastProps})
                 }else{
-                    toast.error("Erro ao alterar a senha",{toastProps})
+                    toast.error("Erro ao alterar os dados",{toastProps})
                 }
             }catch(error) {
                 toast.error("Erro ao alterar dados do usuario",{toastProps})
