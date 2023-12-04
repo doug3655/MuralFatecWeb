@@ -15,7 +15,7 @@ export default function Menu(){
             navegate('/Login');
         }else{
             let usuarioParse = JSON.parse(usuarioSession);
-            setPerfilUsuario(usuarioParse);
+            setPerfilUsuario(usuarioParse.id_tp_perfil_usuario);
             if(typeof  perfilUsuario === "undefined"){
                 navegate('/Login');
             }
@@ -36,6 +36,10 @@ export default function Menu(){
           }
        
     };
+
+    function setBuscarOuCriarGrupo(isBuscar){
+        sessionStorage.setItem("isBuscarGrupo",isBuscar);
+    }
 
     return (
         <Drawer
@@ -71,6 +75,7 @@ export default function Menu(){
                                 </Typography>
                             </ListItemText>
                         </ListItemButton>
+                        {perfilUsuario===3 &&
                         <ListItemButton component={Link} to="/GrupoVisualizar" sx={{ pl: 4 }}>
                             <ListItemText>
                                 <Typography>
@@ -78,6 +83,7 @@ export default function Menu(){
                                 </Typography>
                             </ListItemText>
                         </ListItemButton>
+                        }
                     </List>
                 </Collapse>
                 <ListItemButton onClick={() => handleAlterarEstadoMenu("grupoMenu")}>
@@ -85,14 +91,14 @@ export default function Menu(){
                 </ListItemButton>
                 <Collapse in={grupoMenu} timeout="auto">
                     <List>
-                        <ListItemButton component={Link} to="/GrupoCadastro" sx={{ pl: 4 }}>
+                        <ListItemButton component={Link} to="/GrupoCadastro" sx={{ pl: 4 }} onClick={()=>{setBuscarOuCriarGrupo(false)}}>
                             <ListItemText>
                                 <Typography>
                                     Criar Grupo
                                 </Typography>
                             </ListItemText>
                         </ListItemButton>
-                        <ListItemButton component={Link} to="/GrupoVisualizar" sx={{ pl: 4 }}>
+                        <ListItemButton component={Link} to="/GrupoVisualizar" sx={{ pl: 4 }} onClick={()=>{setBuscarOuCriarGrupo(true)}}>
                             <ListItemText>
                                 <Typography>
                                    Visualizar Grupo

@@ -3,7 +3,6 @@ import Cadastro from './pages/cadastro';
 import Home from './pages/home';
 import Layout from './pages/layout';
 import GrupoCadastro from './pages/grupo/cadastro';
-import GrupoVisualizar from './pages/grupo/vizualizar';
 import CentralAprovacoes from './pages/centralAprovacoes'
 import { toast } from 'react-toastify';
 import { ThemeProvider } from "@mui/material/styles";
@@ -41,13 +40,13 @@ function App() {
               </PrivateRoute>
               } />
             <Route path="/GrupoCadastro" element={
-              <PrivateRoute perfil={1}>
-                <GrupoCadastro />
+              <PrivateRoute perfil={1} >
+                <GrupoCadastro key={"GrupoCadastro"}/>
               </PrivateRoute>
             } />
             <Route path="/GrupoVisualizar" element={
-              <PrivateRoute perfil={1}>
-                <GrupoVisualizar />
+              <PrivateRoute perfil={1} >
+                <GrupoCadastro key={"GrupoVisualizar"}/>
               </PrivateRoute>
             } />
             <Route path="/CentralAprovacoes" element={
