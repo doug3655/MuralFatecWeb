@@ -1,12 +1,15 @@
 import "./style.css"
-import {Link,useNavigate} from "react-router-dom"
+import { Link,useNavigate } from "react-router-dom"
 import { Drawer, List, ListItemButton,ListItemText,Typography,Collapse} from "@mui/material"
-import { useState,useEffect } from 'react';
+import { useState,useEffect,useContext } from 'react';
+import { toast } from 'react-toastify';
+import { ContextoToastConfig } from "../../context";
 
 export default function Menu(){
     const [grupoMenu, setGrupoMenu] = useState();
     const [usuarioMenu, setUsuarioMenu] = useState();
     const [perfilUsuario,setPerfilUsuario] = useState(0);
+    const toastProps = useContext(ContextoToastConfig);
     const navegate = useNavigate();
 
     useEffect(() => {
@@ -37,9 +40,35 @@ export default function Menu(){
        
     };
 
-    function setBuscarOuCriarGrupo(isBuscar){
-        sessionStorage.setItem("isBuscarGrupo",isBuscar);
-    }
+    async function setBuscarOuCriarGrupo(isBuscar){
+        sessionStorage.setItem("isVisualizarGrupo",isBuscar);
+        let grupo = await buscarDadosGrupo();
+        console.log(grupo);
+    };
+
+    async function buscarDadosGrupo(){
+        let grupo = null;
+        try{
+            let usuarioSession = sessionStorage.getItem("usuario");
+            let usuario = JSON.parse(usuarioSession);
+            const response = await fetch(process.env.REACT_APP_BACKEND_URL+"busca-dado-grupo/"+usuario.id_usuario, {
+                method: "GET",
+                headers: {
+                    "Content-Type": "application/json"
+                }
+            });
+            if (response.ok) {
+                grupo = await response.json();
+                sessionStorage.setItem("dadosGrupo",JSON.stringify(grupo));
+            }else{
+                toast.error("Erro durante a validacao de grupo",{toastProps});
+            }
+        }catch(error) {
+            console.log(error)
+            toast.error("Erro durante a validacao de grupo ",{toastProps});
+        }
+        return grupo;
+    };
 
     return (
         <Drawer
@@ -91,6 +120,7 @@ export default function Menu(){
                 </ListItemButton>
                 <Collapse in={grupoMenu} timeout="auto">
                     <List>
+                        {perfilUsuario===3 &&
                         <ListItemButton component={Link} to="/GrupoCadastro" sx={{ pl: 4 }} onClick={()=>{setBuscarOuCriarGrupo(false)}}>
                             <ListItemText>
                                 <Typography>
@@ -98,6 +128,7 @@ export default function Menu(){
                                 </Typography>
                             </ListItemText>
                         </ListItemButton>
+                        }
                         <ListItemButton component={Link} to="/GrupoVisualizar" sx={{ pl: 4 }} onClick={()=>{setBuscarOuCriarGrupo(true)}}>
                             <ListItemText>
                                 <Typography>

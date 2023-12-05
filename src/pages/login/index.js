@@ -36,9 +36,9 @@ export default function Login(){
                     }
                 });
                 if (response.ok) {
-                    toast.success("Login Realizado com Sucesso",{toastProps})
-                    const usuario = await response.json()
-                    sessionStorage.setItem("usuario",JSON.stringify(usuario))
+                    toast.success("Login Realizado com Sucesso",{toastProps});
+                    const usuario = await response.json();
+                    sessionStorage.setItem("usuario",JSON.stringify(usuario));
                     navegate('/Home');
                 }else{
                     toast.error("Erro ao realizar a busca do usuario",{toastProps});

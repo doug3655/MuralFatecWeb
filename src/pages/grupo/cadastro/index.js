@@ -1,6 +1,6 @@
 import "./style.css"
 import { useState,useEffect,useContext } from 'react';
-import { Button,TextField,Select,MenuItem,FormControl,InputLabel,FormGroup,FormControlLabel,Checkbox,FormLabel,Stack,Typography,List,ListItem,ListItemText,IconButton  } from "@mui/material";
+import { Button,TextField,Select,MenuItem,FormControl,InputLabel,FormGroup,FormControlLabel,Checkbox,FormLabel,Stack,Typography,List,ListItem,ListItemText,Modal,Box  } from "@mui/material";
 import { toast } from 'react-toastify';
 import { ContextoToastConfig } from "../../../context";
 import { useNavigate } from "react-router-dom"
@@ -15,8 +15,11 @@ export default function GrupoCadastro(){
     const [orientadores,setOrientadores] = useState([{nm_usuario:" ",id_usuario:0}]);
     const [checked, setChecked] = useState([false, false]);
     const [isVisualizar,setIsVisualizar] = useState(false);
-    const [listaDados,setListaDados] = useState([{}]);
+    const [listaDados,setListaDados] = useState([{nm_usuario:"",id_usuario:0}]);
     const [perfilUsuario,setPerfilUsuario] = useState(0);
+    const [idGrupo, setIdGrupo] = useState('');
+    const [idUsuario,setIdUsuario] = useState('');
+    const [open,setOpen] = useState(false);
     const toastProps = useContext(ContextoToastConfig);
     const navegate = useNavigate();
 
@@ -40,8 +43,8 @@ export default function GrupoCadastro(){
                 toast.error("Erro ao buscar os Cursos",{toastProps});
             }
         } catch (error) {
-            console.log(error)
-            toast.error("Erro ao realizar a busca dos Cursos",{toastProps})
+            console.log(error);
+            toast.error("Erro ao realizar a busca dos Cursos",{toastProps});
         }
     };
 
@@ -58,7 +61,7 @@ export default function GrupoCadastro(){
             }
         } catch (error) {
             console.log(error)
-            toast.error("Erro ao realizar a busca dos Periodos",{toastProps})
+            toast.error("Erro ao realizar a busca dos Periodos",{toastProps});
         }
     };
 
@@ -96,7 +99,6 @@ export default function GrupoCadastro(){
                     nm_usuario:usuario.nm_usuario
                 }]
             };
-            console.log(JSON.stringify(payload));
             const response = await fetch(process.env.REACT_APP_BACKEND_URL+"registrar-grupo", {
                 method: "POST",
                 body: JSON.stringify(payload),
@@ -106,39 +108,90 @@ export default function GrupoCadastro(){
             });
             if (response.ok) {
                 toast.success("Grupo cadastrado com sucesso",{toastProps});
-                sessionStorage.setItem("isBuscarGrupo",true);
-                sessionStorage.setItem("dadosGrupo",JSON.stringify(payload));
-                navegate('/GrupoVisualizar');
+                navegate('/Home');
             }else{
                 toast.error("Erro ao cadastrar grupo",{toastProps});
             }
         } catch (error) {
             console.log(error)
-            toast.error("Erro ao realizar o cadastro do grupo",{toastProps})
+            toast.error("Erro ao realizar o cadastro do grupo",{toastProps});
+        }
+    };
+
+    async function alterarDadosGrupo(){
+        try {
+            let payload = {
+                id_grupo:idGrupo,
+                nm_tema:tema,
+                id_orientador:grupoOrientador,
+                id_tp_curso:grupoCurso,
+                id_tp_periodo:grupoPeriodo,
+                id_tp_status:3,
+                id_tp_status_vinculo:4,
+                fl_tg1:checked[0],
+                fl_tg2:checked[1]
+            };
+            console.log(JSON.stringify(payload));
+            const response = await fetch(process.env.REACT_APP_BACKEND_URL+"alterar-grupo", {
+                method: "POST",
+                body: JSON.stringify(payload),
+                headers: {
+                    "Content-Type": "application/json"
+                }
+            });
+            if (response.ok) {
+                toast.success("Grupo alterado com sucesso",{toastProps});
+            }else{
+                toast.error("Erro ao alterar o grupo",{toastProps});
+            }
+        } catch (error) {
+            console.log(error);
+            toast.error("Erro ao realizar a alteração dos dados do grupo",{toastProps});
         }
     };
 
     async function recuperarDadosGrupo(){
-        let isDadosgrupo = JSON.parse(sessionStorage.getItem("isBuscarGrupo"));
-        setIsVisualizar(isDadosgrupo);
-        if(!isDadosgrupo){
+        let isVisualizarGrupo = JSON.parse(sessionStorage.getItem("isVisualizarGrupo"));
+        setIsVisualizar(isVisualizarGrupo);
+        if(!isVisualizarGrupo){
             sessionStorage.removeItem("dadosGrupo");
         }else{
-            let dadosGrupo = sessionStorage.getItem("dadosGrupo");
             let dadosUsuario = JSON.parse(sessionStorage.getItem("usuario"));
+            let dadosGrupo = JSON.parse(sessionStorage.getItem("dadosGrupo"));
             setPerfilUsuario(dadosUsuario.id_tp_perfil_usuario);
             if(dadosGrupo !== null){
-                dadosGrupo = JSON.parse(dadosGrupo);
+                setIdUsuario(dadosUsuario.id_usuario);
+                setIdGrupo(dadosGrupo.id_grupo);
                 setTema(dadosGrupo.nm_tema);
                 setGrupoCurso(dadosGrupo.id_tp_curso);
                 setGrupoPeriodo(dadosGrupo.id_tp_curso);
                 setGrupoOrientador(dadosGrupo.id_orientador);
                 // eslint-disable-next-line
                 setChecked({...checked,[0]:dadosGrupo.fl_tg1,[1]:dadosGrupo.fl_tg2});
-                setListaDados([{textoLinha:dadosUsuario.nm_usuario,idLinha:dadosUsuario.id_usuario}]);
+                setListaDados(dadosGrupo.alunos);
             }else{
-                //buscar Dados do grupo no banco
+                toast.error("Voce não esta em um grupo",{toastProps});
             }
+        }
+    };
+
+    async function sairAlunoGrupo(){
+        try {
+            const response = await fetch(process.env.REACT_APP_BACKEND_URL+"aluno-sair-grupo/"+idUsuario+"/"+idGrupo, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                }
+            });
+            if (response.ok) {
+                toast.success("Voce saiu do grupo",{toastProps});
+                navegate('/Home');
+            }else{
+                toast.error("Erro ao alterar o grupo",{toastProps});
+            }
+        } catch (error) {
+            console.log(error);
+            toast.error("Erro ao realizar a alteração dos dados do grupo",{toastProps});
         }
     };
 
@@ -156,6 +209,7 @@ export default function GrupoCadastro(){
                     color="dark"
                     sx={{ margin:2,width:500 }}
                     value={tema}
+                    {...(isVisualizar && perfilUsuario===1 ) && {disabled:true}}
                     onChange={(e) => {setTema(e.target.value)}}
                 />
             <FormControl>
@@ -167,6 +221,7 @@ export default function GrupoCadastro(){
                     color="dark"
                     sx={{ width:500 }}
                     value={grupoCurso}
+                    {...(isVisualizar && perfilUsuario===1 ) && {disabled:true}}
                     required>
                     {cursos.map((item)=>{
                         return (
@@ -177,11 +232,15 @@ export default function GrupoCadastro(){
             <FormGroup sx={{marginTop:2,marginBottom:1}}>
                 <FormLabel component="legend">Selecione a disciplina matriculada:</FormLabel>
             </FormGroup>
-            <FormGroup row sx={{width:500,justifyContent:"center"}}>
-                <FormControlLabel control={<Checkbox checked={checked[0]} onChange={(e)=>{setChecked({...checked,[0]:e.target.checked})}}/>} label="TG I" sx={{width:100}}/>
-                <FormControlLabel control={<Checkbox checked={checked[1]} onChange={(e)=>{setChecked({...checked,[1]:e.target.checked})}}/>} label="TG II" sx={{width:100}}/>
+            <FormGroup row sx={{width:500,justifyContent:"center"} }>
+                <FormControlLabel {...(isVisualizar && perfilUsuario===1 ) && {disabled:true}} control={<Checkbox checked={checked[0]} onChange={(e)=>{setChecked(
+                    // eslint-disable-next-line
+                    {...checked,[0]:e.target.checked})}}/>} label="TG I" sx={{width:100}}/>
+                <FormControlLabel {...(isVisualizar && perfilUsuario===1 ) && {disabled:true}} control={<Checkbox checked={checked[1]} onChange={(e)=>{setChecked(
+                    // eslint-disable-next-line
+                    {...checked,[1]:e.target.checked})}}/>} label="TG II" sx={{width:100}}/>
             </FormGroup>
-            <FormControl sx={{marginTop:2}}>
+            <FormControl {...(isVisualizar && perfilUsuario===1 ) && {disabled:true}} sx={{marginTop:2}}>
                 <InputLabel id="PeriodoLabel" required>Periodo</InputLabel>
                 <Select
                     labelId="PeriodoLabel"
@@ -197,7 +256,7 @@ export default function GrupoCadastro(){
                     })}
                 </Select>
             </FormControl>
-            <FormControl sx={{marginTop:2}}>
+            <FormControl {...(isVisualizar && perfilUsuario===1 ) && {disabled:true}} sx={{marginTop:2}}>
                 <InputLabel id="OrientadorLabel" required sx={{width:100}}>Orientador</InputLabel>
                 <Select
                     labelId="OrientadorLabel"
@@ -216,27 +275,36 @@ export default function GrupoCadastro(){
             <Typography variant="h6" sx={{marginTop:2,marginBottom:2}}>{isVisualizar?'Membros do Grupo':''}</Typography>
             {isVisualizar && 
             <List sx={{width:500}}>
-                {listaDados.map(({textoLinha,idLinha}) =>(
+                {listaDados.map(({nm_usuario,id_usuario}) =>(
                     <ListItem sx={{borderRadius:2,border:"solid #bbbbbb",borderWidth:1,marginBottom:1,paddingLeft:1,width:500}}
-                    key={idLinha}
+                    key={id_usuario}
                     disableGutters>
-                        <ListItemText primary={textoLinha}/>
+                        <ListItemText primary={nm_usuario}/>
                   </ListItem>
                 ))}
             </List>}
- 
             <Stack direction="row" spacing={2} sx={{marginTop:2,marginBottom:3}}>
-                <Button variant="contained" color="success" onClick={cadastrarGrupo}>
+                <Button variant="contained" color="success" onClick={isVisualizar?alterarDadosGrupo:cadastrarGrupo}>
                     {isVisualizar?'Alterar Grupo':'Criar Grupo'}
                 </Button>
                 {(isVisualizar && perfilUsuario === 1) && 
-                <Button variant="contained" color="cancel">
+                <Button variant="contained" color="cancel" onClick={()=>{setOpen(true)}}>
                     Sair do Grupo
                 </Button>}
                 <Button variant="contained" color="primary">
                     Cancelar
                 </Button>
             </Stack>
+            <Modal open={open} onClose={()=>{setOpen(false)}} >
+                <Box sx={{position:"absolute",top:"50%",left:"50%",width:400,backgroundColor:"background.paper",border:"2px solid #000",borderRadius:3,boxShadow:24,transform:"translate(-50%, -50%)",p:4}}>
+                    <Typography variant="h5" sx={{textAlign:"center",marginBottom:2,marginTop:2}}>Deseja realmente sair do grupo?</Typography>
+                    <Stack direction="row" spacing={2} sx={{marginTop:3,marginBottom:3,display:"flex",flexDirection:"column",flexWrap:"wrap",alignContent:"center"}}>
+                        <Button variant="contained" color="error" sx={{width:190}} onClick={sairAlunoGrupo}>
+                            Sair
+                        </Button>
+                    </Stack>
+                </Box>
+            </Modal>
         </div>
     );
 }
