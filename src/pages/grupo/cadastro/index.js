@@ -1,6 +1,7 @@
 import "./style.css"
 import { useState,useEffect,useContext } from 'react';
-import { Button,TextField,Select,MenuItem,FormControl,InputLabel,FormGroup,FormControlLabel,Checkbox,FormLabel,Stack,Typography,List,ListItem,ListItemText,Modal,Box  } from "@mui/material";
+import { Button,TextField,Select,MenuItem,FormControl,InputLabel,FormGroup,FormControlLabel,Checkbox,FormLabel,Stack,Typography,List,ListItem,ListItemText,Modal,Box,Paper,InputBase,IconButton  } from "@mui/material";
+import { Search } from "@mui/icons-material";
 import { toast } from 'react-toastify';
 import { ContextoToastConfig } from "../../../context";
 import { useNavigate } from "react-router-dom"
@@ -19,7 +20,11 @@ export default function GrupoCadastro(){
     const [perfilUsuario,setPerfilUsuario] = useState(0);
     const [idGrupo, setIdGrupo] = useState('');
     const [idUsuario,setIdUsuario] = useState('');
+    const [nomeUsuario,setNomeUsuario] = useState('');
+    const [usuariosEncontrados,setUsuariosEncontrados] = useState([{id_usuario:1,nm_usuario:"Teste"}]);
     const [open,setOpen] = useState(false);
+    const [openVinculo,setOpenVinculo] = useState(false);
+    const [openModalUsuario,setOpenModalUsuario] = useState(false);
     const toastProps = useContext(ContextoToastConfig);
     const navegate = useNavigate();
 
@@ -94,9 +99,10 @@ export default function GrupoCadastro(){
                 id_tp_status_vinculo:3,
                 fl_tg1:checked[0],
                 fl_tg2:checked[1],
-                Alunos:[{
+                alunos:[{
                     id_usuario:usuario.id_usuario,
-                    nm_usuario:usuario.nm_usuario
+                    nm_usuario:usuario.nm_usuario,
+                    nr_ra:usuario.nr_ra
                 }]
             };
             const response = await fetch(process.env.REACT_APP_BACKEND_URL+"registrar-grupo", {
@@ -195,6 +201,57 @@ export default function GrupoCadastro(){
         }
     };
 
+    async function gerarPdfVinculo(isPrimeiroVinculo){
+        try {
+            const response = await fetch(process.env.REACT_APP_BACKEND_URL+"pdf-vinculo-tg-i-ii/"+idGrupo+"/"+isPrimeiroVinculo, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                }
+            });
+            if(response.ok){
+                var pdf = await response.blob();
+                var link=document.createElement('a');
+                link.href=window.URL.createObjectURL(pdf);
+                link.download="Vinculo.pdf";
+                link.click();
+                setOpenVinculo(false);
+            }else{
+                toast.error("Erro ao gerar PDF",{toastProps})
+            }
+        }catch(error){
+            console.log(error);
+            toast.error("Erro ao gerar PDF",{toastProps});
+        }
+    };
+
+    async function buscaAlunoPorNome(){
+        let usuarios = null;
+        try{
+            const response = await fetch(process.env.REACT_APP_BACKEND_URL+"busca-aluno-nome/"+nomeUsuario, {
+                method: "GET",
+                headers: {
+                    "Content-Type": "application/json"
+                }
+            });
+            if (response.ok) {
+                usuarios = await response.json();
+                setUsuariosEncontrados(usuarios);
+            }else{
+                toast.warning("Usuario não encontrado",{toastProps});
+            }
+        }catch(error) {
+            console.log(error);
+            toast.error("Erro ao buscar usuario",{toastProps});
+        }
+    };
+
+    function handleBuscaUsuarioNome(event){
+        if(event.key === 'Enter'){
+            buscaAlunoPorNome();
+        }
+    }
+
     return (   
         <div className="fundo-cadastro-grupo">
             <Typography variant="h5" sx={{marginTop:3,marginBottom:2}}>{isVisualizar?'Dados do grupo':'Cadastro de Grupo'}</Typography>
@@ -284,16 +341,20 @@ export default function GrupoCadastro(){
                 ))}
             </List>}
             <Stack direction="row" spacing={2} sx={{marginTop:2,marginBottom:3}}>
-                <Button variant="contained" color="success" onClick={isVisualizar?alterarDadosGrupo:cadastrarGrupo}>
+                {perfilUsuario !== 1 && <Button variant="contained" color="success" onClick={isVisualizar?alterarDadosGrupo:cadastrarGrupo}>
                     {isVisualizar?'Alterar Grupo':'Criar Grupo'}
                 </Button>
+                }
+                {isVisualizar && <Button variant="contained" color="success" onClick={()=>{setOpenVinculo(true)}}>
+                    Gerar Vinculo
+                </Button>}
+                {(isVisualizar && perfilUsuario !== 1) && <Button variant="contained" color="success" onClick={()=>{setOpenModalUsuario(true)}}>
+                    Adicionar Aluno
+                </Button>}
                 {(isVisualizar && perfilUsuario === 1) && 
                 <Button variant="contained" color="cancel" onClick={()=>{setOpen(true)}}>
                     Sair do Grupo
                 </Button>}
-                <Button variant="contained" color="primary">
-                    Cancelar
-                </Button>
             </Stack>
             <Modal open={open} onClose={()=>{setOpen(false)}} >
                 <Box sx={{position:"absolute",top:"50%",left:"50%",width:400,backgroundColor:"background.paper",border:"2px solid #000",borderRadius:3,boxShadow:24,transform:"translate(-50%, -50%)",p:4}}>
@@ -303,6 +364,46 @@ export default function GrupoCadastro(){
                             Sair
                         </Button>
                     </Stack>
+                </Box>
+            </Modal>
+            <Modal open={openVinculo} onClose={()=>{setOpenVinculo(false)}} >
+                <Box sx={{position:"absolute",top:"50%",left:"50%",width:400,backgroundColor:"background.paper",border:"2px solid #000",borderRadius:3,boxShadow:24,transform:"translate(-50%, -50%)",p:4}}>
+                    <Typography variant="h5" sx={{textAlign:"center",marginBottom:2,marginTop:2}}>Qual o tipo de vinculo?</Typography>
+                    <Stack direction="row" spacing={2} sx={{marginTop:3,marginBottom:3,display:"flex",flexDirection:"row",flexWrap:"wrap",alignContent:"center"}}>
+                        <Button variant="contained" color="success" sx={{width:190}} onClick={()=>{gerarPdfVinculo(true)}}>
+                            Primeiro Vinculo
+                        </Button>
+                        <Button variant="contained" color="primary" sx={{width:190}} onClick={()=>{gerarPdfVinculo(false)}}>
+                            Renovação do Vínculo 
+                        </Button>
+                    </Stack>
+                </Box>
+            </Modal>
+            <Modal open={openModalUsuario} onClose={()=>{setOpenModalUsuario(false)}}>
+                <Box sx={{ position: "absolute", top: "50%", left: "50%", width: 500, height: 500, backgroundColor: "background.paper", border: "2px solid #000", borderRadius: 3, boxShadow: 24, transform: "translate(-50%, -50%)",p:4}}>
+                    <Typography variant="h5" sx={{ textAlign: "center", marginBottom: 2, marginTop: 2 }}>Digite o nome do usuario</Typography>
+                    <Paper sx={{width:490,maxHeight:500,display:"flex", alignItems:"center"}}>
+                        <InputBase
+                            sx={{width:440,paddingLeft:1}}
+                            placeholder="Digite o nome do usuario"
+                            value={nomeUsuario}
+                            onChange={(e)=>{setNomeUsuario(e.target.value)}}
+                            onKeyUp={handleBuscaUsuarioNome}
+                        />
+                        <IconButton type="button" sx={{ p: '10px' }} aria-label="search" onClick={buscaAlunoPorNome}>
+                            <Search />
+                        </IconButton>
+                    </Paper>
+                    <List sx={{ width:490, maxHeight:350, alignContent: "center", justifyContent: "center", flexGrow:1, overflow: "auto", paddingRight:2,marginTop:2 }}>
+                        { !(usuariosEncontrados.length === 0) && usuariosEncontrados.map(({id_usuario,nm_usuario}) => (
+                            <ListItem sx={{ borderRadius: 2, border: "solid #bbbbbb", borderWidth: 1, marginBottom: 1, paddingLeft: 1,width:470,maxWidth:470, maxHeight:75,overflow:"auto","&:hover":{cursor:"pointer"}}}
+                                key={id_usuario}
+                                onClick={()=>{console.log(id_usuario)}}
+                                disableGutters>
+                                <ListItemText primary={nm_usuario} />
+                            </ListItem>
+                        ))}
+                    </List>
                 </Box>
             </Modal>
         </div>

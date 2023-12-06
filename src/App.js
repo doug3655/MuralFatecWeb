@@ -36,11 +36,16 @@ function App() {
               } />
               <Route path="/DadosUsuario" element={
               <PrivateRoute perfil={1}>
-                 <Cadastro />
+                 <Cadastro key={"DadosUsuario"}/>
+              </PrivateRoute>
+              } />
+              <Route path="/DadosUsuarioPesquisado" element={
+              <PrivateRoute perfil={3}>
+                 <Cadastro key={"DadosUsuarioPesquisado"}/>
               </PrivateRoute>
               } />
             <Route path="/GrupoCadastro" element={
-              <PrivateRoute perfil={1} >
+              <PrivateRoute perfil={4} >
                 <GrupoCadastro key={"GrupoCadastro"}/>
               </PrivateRoute>
             } />
@@ -90,6 +95,11 @@ function PrivateRoute({ children,perfil }) {
       break;
     case 3:
       if(perfilUsuario===3){
+        auth=true;
+      };
+      break;
+    case 4:
+      if(perfilUsuario===1){
         auth=true;
       };
       break;

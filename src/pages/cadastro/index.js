@@ -20,28 +20,42 @@ export default function CadastroUsuario(){
     const [ConfirmaSenha, setConfirmaSenha] = useState("");
     const [ConfirmaSenhaErro, setConfirmaSenhaErro] = useState("");
     const [logado, setLogado] = useState(false);
+    const [perfilUsuario,setPerfilUsuario] = useState(0);
 
     const toastProps = useContext(ContextoToastConfig);
     const navegate = useNavigate();
     var usuarioSession;
+    var usuarioPesquisado;
     var validacao = true;
 
     function verificaLogin(){
         usuarioSession = sessionStorage.getItem("usuario");
         if(usuarioSession){
-            let usuario = JSON.parse(usuarioSession);
-            setNome(usuario.nm_usuario);
-            setRA(usuario.nr_ra);
-            setTelefone(usuario.nm_telefone);
-            setEmail(usuario.nm_email);
-            setLogado(true);
+            usuarioPesquisado = sessionStorage.getItem("dadosUsuarioPesquisado");
+            let sessao = JSON.parse(usuarioSession);
+            if(usuarioPesquisado){
+                let usuario = JSON.parse(usuarioPesquisado);
+                setNome(usuario.nm_usuario);
+                setRA(usuario.nr_ra);
+                setTelefone(usuario.nm_telefone);
+                setEmail(usuario.nm_email);
+                setPerfilUsuario(sessao.id_tp_perfil_usuario);
+                setLogado(true);
+            }else{
+                setNome(sessao.nm_usuario);
+                setRA(sessao.nr_ra);
+                setTelefone(sessao.nm_telefone);
+                setEmail(sessao.nm_email);
+                setPerfilUsuario(sessao.id_tp_perfil_usuario);
+                setLogado(true);
+            }
         }
     }
 
     useEffect(() => {
         verificaLogin();
         // eslint-disable-next-line
-    }, []); 
+    }, []);
 
     function redirecionarAoSair(){
         if(logado){
@@ -52,7 +66,7 @@ export default function CadastroUsuario(){
     }
 
     function alterarDados(){
-        if(logado){
+        if(perfilUsuario!==3){
             alterarSenha();
         }else{
             editarCadastro();
@@ -78,20 +92,31 @@ export default function CadastroUsuario(){
                     }
                 });
                 if (response.ok) {
-                    toast.success("Senha alterada com sucesso",{toastProps})
+                    toast.success("Senha alterada com sucesso",{toastProps});
                 }else{
-                    toast.error("Erro ao alterar a senha",{toastProps})
+                    toast.error("Erro ao alterar a senha",{toastProps});
                 }
             }catch(error) {
-                console.log(error)
-                toast.error("Erro ao alterar a senha do usuario",{toastProps})
+                console.log(error);
+                toast.error("Erro ao alterar a senha do usuario",{toastProps});
             }
         }
     }
 
     async function editarCadastro(){
         if(validarDadaos()){
+            let idUsuario;
+            usuarioPesquisado = sessionStorage.getItem("dadosUsuarioPesquisado");
+            if(usuarioPesquisado){
+                let usuario = JSON.parse(usuarioPesquisado);
+                idUsuario = usuario.id_usuario;
+            }else{
+                usuarioSession = sessionStorage.getItem("usuario");
+                let usuario = JSON.parse(usuarioSession);
+                idUsuario = usuario.id_usuario;
+            }
             let payload = {
+                id_usuario:idUsuario,
                 nm_usuario:Nome,
                 nr_ra:RA,
                 nm_email:Email,
@@ -112,6 +137,7 @@ export default function CadastroUsuario(){
                     toast.error("Erro ao alterar os dados",{toastProps})
                 }
             }catch(error) {
+                console.log(error);
                 toast.error("Erro ao alterar dados do usuario",{toastProps})
             }
         }
@@ -213,7 +239,7 @@ export default function CadastroUsuario(){
                     value={Nome}
                     helperText={NomeErro}
                     error={!!NomeErro}
-                    {...Nome && {disabled:true}}
+                    {...(logado && perfilUsuario!==3) && {disabled:true}}
                 />
                 <TextField
                     required
@@ -228,7 +254,7 @@ export default function CadastroUsuario(){
                     value={RA}
                     helperText={RAErro}
                     error={!!RAErro}
-                    {...RA && {disabled:true}}
+                    {...(logado && perfilUsuario!==3) && {disabled:true}}
                 />
                 <TextField
                     required
@@ -243,7 +269,7 @@ export default function CadastroUsuario(){
                     value={Telefone}
                     helperText={TelefoneErro}
                     error={!!TelefoneErro}
-                    {...Telefone && {disabled:true}}
+                    {...(logado && perfilUsuario!==3) && {disabled:true}}
                 />
                 <TextField
                     required
@@ -258,7 +284,7 @@ export default function CadastroUsuario(){
                     value={Email}
                     helperText={EmailErro}
                     error={!!EmailErro}
-                    {...Email && {disabled:true}}
+                    {...(logado && perfilUsuario!==3) && {disabled:true}}
                 />
                 <TextField
                     required

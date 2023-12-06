@@ -15,6 +15,9 @@ export default function Login(){
 
     function limpaDados(){
         sessionStorage.removeItem("usuario");
+        sessionStorage.removeItem("isVisualizarGrupo");
+        sessionStorage.removeItem("dadosGrupo");
+        sessionStorage.removeItem("dadosUsuarioPesquisado");
     }
 
     useEffect(() => {
