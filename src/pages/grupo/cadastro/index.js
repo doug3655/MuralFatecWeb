@@ -32,6 +32,7 @@ export default function GrupoCadastro(){
     const [openVinculo,setOpenVinculo] = useState(false);
     const [openModalUsuario,setOpenModalUsuario] = useState(false);
     const [openModalRemoverUsuario,setOpenModalRemoverUsuario] = useState(false);
+    const [statusVinculo,setStatusVinculo] = useState('');
     const toastProps = useContext(ContextoToastConfig);
     const navegate = useNavigate();
 
@@ -218,6 +219,20 @@ export default function GrupoCadastro(){
                 setGrupoCurso(dadosGrupo.id_tp_curso);
                 setGrupoPeriodo(dadosGrupo.id_tp_curso);
                 setGrupoOrientador(dadosGrupo.id_orientador);
+                let status = dadosGrupo.id_tp_status_vinculo;
+                switch (status){
+                    case 1:
+                        setStatusVinculo("Aprovado");
+                        break;
+                    case 2:
+                        setStatusVinculo("Recusado");
+                        break;
+                    case 3:
+                        setStatusVinculo("Pendente");
+                        break;
+                    default:
+                        break;
+                }
                 // eslint-disable-next-line
                 setChecked({...checked,[0]:dadosGrupo.fl_tg1,[1]:dadosGrupo.fl_tg2});
                 setListaDados(dadosGrupo.alunos);
@@ -262,6 +277,10 @@ export default function GrupoCadastro(){
                 link.download="Vinculo.pdf";
                 link.click();
                 setOpenVinculo(false);
+                setStatusVinculo("Pendente");
+                let dadosGrupo = JSON.parse(sessionStorage.getItem("dadosGrupo"));
+                dadosGrupo.id_tp_status_vinculo = 3;
+                sessionStorage.setItem("dadosGrupo",JSON.stringify(dadosGrupo));
             }else{
                 toast.error("Erro ao gerar PDF",{toastProps})
             }
@@ -435,6 +454,22 @@ export default function GrupoCadastro(){
                 </Select>
                 <FormHelperText>{grupoOrientadorErro}</FormHelperText>
             </FormControl>
+            {isVisualizar && <TextField
+                    size="small"
+                    id="Vinculo"
+                    label="Vinculo"
+                    name="Vinculo"
+                    autoComplete="Vinculo"
+                    color="dark"
+                    sx={{ margin:2,width:500,
+                        "& .MuiInputBase-input.Mui-disabled": {
+                          WebkitTextFillColor: "#121212",
+                        }
+                    }}
+                    value={statusVinculo}
+                    onChange={(e) => {setStatusVinculo(e.target.value)}}
+                    disabled
+                />}
             <Typography variant="h6" sx={{marginTop:2,marginBottom:2}}>{isVisualizar?'Membros do Grupo':''}</Typography>
             {isVisualizar && 
             <List sx={{width:500}}>
