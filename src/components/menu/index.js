@@ -248,7 +248,7 @@ export default function Menu(){
                 <Collapse in={grupoMenu} timeout="auto">
                     <List>
                         {perfilUsuario===1 &&
-                        <ListItemButton component={Link} to="/GrupoCadastro" sx={{ pl: 4 }} onClick={acessoGrupoCadastro}>
+                        <ListItemButton sx={{ pl: 4 }} onClick={acessoGrupoCadastro}>
                             <ListItemText>
                                 <Typography>
                                     Criar Grupo

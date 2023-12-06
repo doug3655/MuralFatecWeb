@@ -20,6 +20,22 @@ export default function Login(){
         sessionStorage.removeItem("dadosUsuarioPesquisado");
     }
 
+    function validarEmail() {
+        if (!Email) {
+            setEmailErro("Digite o Email!");
+            return false
+        } else {
+            let antes = Email.indexOf("@");
+            let depois = Email.split("@")[1];
+
+            if (antes < 1 || depois !== 'fatec.sp.gov.br') {
+                toast.warning("Email invalido, use o institucional", { toastProps })
+                return false
+            }
+        }
+        return true;
+    }
+
     useEffect(() => {
         limpaDados();
     }, []);
@@ -44,9 +60,16 @@ export default function Login(){
                     sessionStorage.setItem("usuario",JSON.stringify(usuario));
                     navegate('/Home');
                 }else{
-                    toast.error("Erro ao realizar a busca do usuario",{toastProps});
+                    let status = response.status;
+                    console.log(status);
+                    if(status === 404){
+                        toast.warning("Usuario ou senha incorreto",{toastProps});
+                    }else{
+                        toast.error("Erro ao realizar a busca do usuario",{toastProps});
+                    }
                 }
             }catch(error){
+                console.log(error);
                 toast.error("Erro ao realizar o login",{toastProps});
             }
         }
@@ -54,8 +77,7 @@ export default function Login(){
 
     function validarDadaos(){
         let validacao = true;
-        if(!Email){
-            setEmailErro("Digite o Email!");
+        if(!validarEmail()){
             validacao = false;
         }else{
             setEmailErro("");

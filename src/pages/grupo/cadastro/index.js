@@ -1,30 +1,37 @@
 import "./style.css"
 import { useState,useEffect,useContext } from 'react';
-import { Button,TextField,Select,MenuItem,FormControl,InputLabel,FormGroup,FormControlLabel,Checkbox,FormLabel,Stack,Typography,List,ListItem,ListItemText,Modal,Box,Paper,InputBase,IconButton  } from "@mui/material";
-import { Search } from "@mui/icons-material";
+import { Button,TextField,Select,MenuItem,FormControl,InputLabel,FormGroup,FormControlLabel,Checkbox,FormLabel,Stack,Typography,List,ListItem,ListItemText,Modal,Box,Paper,InputBase,IconButton,FormHelperText  } from "@mui/material";
+import { Search,Cancel } from "@mui/icons-material";
 import { toast } from 'react-toastify';
 import { ContextoToastConfig } from "../../../context";
 import { useNavigate } from "react-router-dom"
 
 export default function GrupoCadastro(){
     const [grupoCurso, setGrupoCurso] = useState('');
+    const [grupoCursoErro,setGrupoCursoErro] = useState('');
     const [grupoPeriodo, setGrupoPeriodo] = useState('');
+    const [grupoPeriodoErro, setGrupoPeriodoErro] = useState('');
     const [grupoOrientador, setGrupoOrientador] = useState('');
+    const [grupoOrientadorErro, setGrupoOrientadorErro] = useState('');
     const [tema,setTema] = useState('');
+    const [temaErro,setTemaErro] = useState('');
     const [cursos,setCursos] = useState([{nm_curso:" ",id_tp_curso:0}]);
     const [periodos,setPeriodos] = useState([{nm_periodo:" ",id_tp_periodo:0}]);
     const [orientadores,setOrientadores] = useState([{nm_usuario:" ",id_usuario:0}]);
     const [checked, setChecked] = useState([false, false]);
+    const [checkedErro,setCheckedErro] = useState('');
     const [isVisualizar,setIsVisualizar] = useState(false);
     const [listaDados,setListaDados] = useState([{nm_usuario:"",id_usuario:0}]);
     const [perfilUsuario,setPerfilUsuario] = useState(0);
     const [idGrupo, setIdGrupo] = useState('');
     const [idUsuario,setIdUsuario] = useState('');
+    const [idUsuarioRemover,setIdUsuarioRemover] = useState('');
     const [nomeUsuario,setNomeUsuario] = useState('');
-    const [usuariosEncontrados,setUsuariosEncontrados] = useState([{id_usuario:1,nm_usuario:"Teste"}]);
+    const [usuariosEncontrados,setUsuariosEncontrados] = useState([]);
     const [open,setOpen] = useState(false);
     const [openVinculo,setOpenVinculo] = useState(false);
     const [openModalUsuario,setOpenModalUsuario] = useState(false);
+    const [openModalRemoverUsuario,setOpenModalRemoverUsuario] = useState(false);
     const toastProps = useContext(ContextoToastConfig);
     const navegate = useNavigate();
 
@@ -87,72 +94,111 @@ export default function GrupoCadastro(){
         }
     };
 
+    function validarCampos(){
+        let validacao = true;
+        if(!tema){
+            validacao = false;
+            setTemaErro("Digite o tema!");
+        }else{
+            setTemaErro("");
+        }
+        if(!grupoCurso){
+            validacao = false;
+            setGrupoCursoErro("Selecione o grupo!");
+        }else{
+            setGrupoCursoErro("");
+        }
+        if(!grupoPeriodo){
+            validacao = false;
+            setGrupoPeriodoErro("Selecione o periodo!");
+        }else{
+            setGrupoPeriodoErro("");
+        }
+        if(!grupoOrientador){
+            validacao = false;
+            setGrupoOrientadorErro("Selecione o orientador!");
+        }else{
+            setGrupoOrientadorErro("");
+        }
+        if(!checked[0] && !checked[1]){
+            validacao = false;
+            setCheckedErro("Selecione ao menos 1 disciplina!");
+        }else{
+            setCheckedErro("");
+        }
+        return validacao;
+    }
+
     async function cadastrarGrupo(){
-        try {
-            let usuario = JSON.parse(sessionStorage.getItem("usuario"));
-            let payload = {
-                nm_tema:tema,
-                id_orientador:grupoOrientador,
-                id_tp_curso:grupoCurso,
-                id_tp_periodo:grupoPeriodo,
-                id_tp_status:3,
-                id_tp_status_vinculo:3,
-                fl_tg1:checked[0],
-                fl_tg2:checked[1],
-                alunos:[{
-                    id_usuario:usuario.id_usuario,
-                    nm_usuario:usuario.nm_usuario,
-                    nr_ra:usuario.nr_ra
-                }]
-            };
-            const response = await fetch(process.env.REACT_APP_BACKEND_URL+"registrar-grupo", {
-                method: "POST",
-                body: JSON.stringify(payload),
-                headers: {
-                    "Content-Type": "application/json"
+        if(validarCampos()){
+            try {
+                let usuario = JSON.parse(sessionStorage.getItem("usuario"));
+                let payload = {
+                    nm_tema:tema,
+                    id_orientador:grupoOrientador,
+                    id_tp_curso:grupoCurso,
+                    id_tp_periodo:grupoPeriodo,
+                    id_tp_status:3,
+                    id_tp_status_vinculo:3,
+                    fl_tg1:checked[0],
+                    fl_tg2:checked[1],
+                    alunos:[{
+                        id_usuario:usuario.id_usuario,
+                        nm_usuario:usuario.nm_usuario,
+                        nr_ra:usuario.nr_ra
+                    }]
+                };
+                const response = await fetch(process.env.REACT_APP_BACKEND_URL+"registrar-grupo", {
+                    method: "POST",
+                    body: JSON.stringify(payload),
+                    headers: {
+                        "Content-Type": "application/json"
+                    }
+                });
+                if (response.ok) {
+                    toast.success("Grupo cadastrado com sucesso",{toastProps});
+                    navegate('/Home');
+                }else{
+                    toast.error("Erro ao cadastrar grupo",{toastProps});
                 }
-            });
-            if (response.ok) {
-                toast.success("Grupo cadastrado com sucesso",{toastProps});
-                navegate('/Home');
-            }else{
-                toast.error("Erro ao cadastrar grupo",{toastProps});
+            } catch (error) {
+                console.log(error)
+                toast.error("Erro ao realizar o cadastro do grupo",{toastProps});
             }
-        } catch (error) {
-            console.log(error)
-            toast.error("Erro ao realizar o cadastro do grupo",{toastProps});
         }
     };
 
     async function alterarDadosGrupo(){
-        try {
-            let payload = {
-                id_grupo:idGrupo,
-                nm_tema:tema,
-                id_orientador:grupoOrientador,
-                id_tp_curso:grupoCurso,
-                id_tp_periodo:grupoPeriodo,
-                id_tp_status:3,
-                id_tp_status_vinculo:4,
-                fl_tg1:checked[0],
-                fl_tg2:checked[1]
-            };
-            console.log(JSON.stringify(payload));
-            const response = await fetch(process.env.REACT_APP_BACKEND_URL+"alterar-grupo", {
-                method: "POST",
-                body: JSON.stringify(payload),
-                headers: {
-                    "Content-Type": "application/json"
+        if(validarCampos()){
+            try {
+                let payload = {
+                    id_grupo:idGrupo,
+                    nm_tema:tema,
+                    id_orientador:grupoOrientador,
+                    id_tp_curso:grupoCurso,
+                    id_tp_periodo:grupoPeriodo,
+                    id_tp_status:3,
+                    id_tp_status_vinculo:4,
+                    fl_tg1:checked[0],
+                    fl_tg2:checked[1]
+                };
+                console.log(JSON.stringify(payload));
+                const response = await fetch(process.env.REACT_APP_BACKEND_URL+"alterar-grupo", {
+                    method: "POST",
+                    body: JSON.stringify(payload),
+                    headers: {
+                        "Content-Type": "application/json"
+                    }
+                });
+                if (response.ok) {
+                    toast.success("Grupo alterado com sucesso",{toastProps});
+                }else{
+                    toast.error("Erro ao alterar o grupo",{toastProps});
                 }
-            });
-            if (response.ok) {
-                toast.success("Grupo alterado com sucesso",{toastProps});
-            }else{
-                toast.error("Erro ao alterar o grupo",{toastProps});
+            } catch (error) {
+                console.log(error);
+                toast.error("Erro ao realizar a alteração dos dados do grupo",{toastProps});
             }
-        } catch (error) {
-            console.log(error);
-            toast.error("Erro ao realizar a alteração dos dados do grupo",{toastProps});
         }
     };
 
@@ -252,6 +298,58 @@ export default function GrupoCadastro(){
         }
     }
 
+    async function cadastrarAlunoGrupo(id_usuario,nm_usuario){
+        try {
+            const response = await fetch(process.env.REACT_APP_BACKEND_URL+"registrar-aluno-grupo/"+id_usuario+"/"+idGrupo, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                }
+            });
+            if (response.ok) {
+                setListaDados(listaDados => [...listaDados,{nm_usuario:nm_usuario,id_usuario:id_usuario}]);
+                setOpenModalUsuario(false);
+                toast.success("Aluno adicionado ao grupo",{toastProps});
+            }else{
+                toast.error("Não foi possivel adicionar o aluno no grupo",{toastProps});
+            }
+        } catch (error) {
+            console.log(error);
+            toast.error("Erro ao adicionar o aluno no grupo",{toastProps});
+        }
+    };
+
+    async function removerAlunoGrupo(){
+        try {
+            const response = await fetch(process.env.REACT_APP_BACKEND_URL+"remover-aluno-grupo/"+idUsuarioRemover+"/"+idGrupo, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                }
+            });
+            if (response.ok) {
+                const alunosRestantes = await response.json();
+                toast.success("Aluno removido com sucesso",{toastProps});
+                setListaDados(listaDados.filter(item => item.id_usuario !== idUsuarioRemover));
+                setOpenModalRemoverUsuario(false);
+                let dadosGrupo = JSON.parse(sessionStorage.getItem("dadosGrupo"));
+                dadosGrupo.alunos = dadosGrupo.alunos.filter(item => item.id_usuario !== idUsuarioRemover);
+                sessionStorage.setItem("dadosGrupo",JSON.stringify(dadosGrupo));
+                if(alunosRestantes<1){
+                    toast.warning("Grupo encerrado por não possuir nenhum aluno",{toastProps});
+                    navegate('/Home');
+                }
+            }else{
+                setOpenModalRemoverUsuario(false);
+                toast.error("Erro ao remover aluno do grupo",{toastProps});
+            }
+        } catch (error) {
+            console.log(error);
+            setOpenModalRemoverUsuario(false);
+            toast.error("Erro durante a removeção do aluno do grupo",{toastProps});
+        }
+    }
+
     return (   
         <div className="fundo-cadastro-grupo">
             <Typography variant="h5" sx={{marginTop:3,marginBottom:2}}>{isVisualizar?'Dados do grupo':'Cadastro de Grupo'}</Typography>
@@ -266,10 +364,12 @@ export default function GrupoCadastro(){
                     color="dark"
                     sx={{ margin:2,width:500 }}
                     value={tema}
+                    helperText={temaErro}
+                    error={!!temaErro}
                     {...(isVisualizar && perfilUsuario===1 ) && {disabled:true}}
                     onChange={(e) => {setTema(e.target.value)}}
                 />
-            <FormControl>
+            <FormControl error={!!grupoCursoErro}>
                 <InputLabel id="CursoLabel" required>Curso</InputLabel>
                     <Select
                     labelId="CursoLabel"
@@ -285,11 +385,13 @@ export default function GrupoCadastro(){
                          <MenuItem key={item.id_tp_curso} value={item.id_tp_curso}>{item.nm_curso}</MenuItem>
                     )})}
                     </Select>
+                    <FormHelperText>{grupoCursoErro}</FormHelperText>
             </FormControl>
             <FormGroup sx={{marginTop:2,marginBottom:1}}>
                 <FormLabel component="legend">Selecione a disciplina matriculada:</FormLabel>
             </FormGroup>
-            <FormGroup row sx={{width:500,justifyContent:"center"} }>
+            <FormControl error={!!checkedErro} sx={{alignItems:"center"}}>
+            <FormGroup row sx={{width:500,justifyContent:"center"} } >
                 <FormControlLabel {...(isVisualizar && perfilUsuario===1 ) && {disabled:true}} control={<Checkbox checked={checked[0]} onChange={(e)=>{setChecked(
                     // eslint-disable-next-line
                     {...checked,[0]:e.target.checked})}}/>} label="TG I" sx={{width:100}}/>
@@ -297,7 +399,9 @@ export default function GrupoCadastro(){
                     // eslint-disable-next-line
                     {...checked,[1]:e.target.checked})}}/>} label="TG II" sx={{width:100}}/>
             </FormGroup>
-            <FormControl {...(isVisualizar && perfilUsuario===1 ) && {disabled:true}} sx={{marginTop:2}}>
+            <FormHelperText>{checkedErro}</FormHelperText>
+            </FormControl>
+            <FormControl {...(isVisualizar && perfilUsuario===1 ) && {disabled:true}} sx={{marginTop:2}} error={!!grupoPeriodoErro}>
                 <InputLabel id="PeriodoLabel" required>Periodo</InputLabel>
                 <Select
                     labelId="PeriodoLabel"
@@ -312,8 +416,9 @@ export default function GrupoCadastro(){
                         )
                     })}
                 </Select>
+                <FormHelperText>{grupoPeriodoErro}</FormHelperText>
             </FormControl>
-            <FormControl {...(isVisualizar && perfilUsuario===1 ) && {disabled:true}} sx={{marginTop:2}}>
+            <FormControl {...(isVisualizar && perfilUsuario===1 ) && {disabled:true}} sx={{marginTop:2}} error={!!grupoOrientadorErro}>
                 <InputLabel id="OrientadorLabel" required sx={{width:100}}>Orientador</InputLabel>
                 <Select
                     labelId="OrientadorLabel"
@@ -328,6 +433,7 @@ export default function GrupoCadastro(){
                         )
                     })}
                 </Select>
+                <FormHelperText>{grupoOrientadorErro}</FormHelperText>
             </FormControl>
             <Typography variant="h6" sx={{marginTop:2,marginBottom:2}}>{isVisualizar?'Membros do Grupo':''}</Typography>
             {isVisualizar && 
@@ -336,8 +442,13 @@ export default function GrupoCadastro(){
                     <ListItem sx={{borderRadius:2,border:"solid #bbbbbb",borderWidth:1,marginBottom:1,paddingLeft:1,width:500}}
                     key={id_usuario}
                     disableGutters>
-                        <ListItemText primary={nm_usuario}/>
-                  </ListItem>
+                        <ListItemText primary={nm_usuario} />
+                        {(isVisualizar && perfilUsuario !== 1) &&
+                            <IconButton onClick={() => { setIdUsuarioRemover(id_usuario);setOpenModalRemoverUsuario(true); }}>
+                                <Cancel color="cancel" />
+                            </IconButton>
+                        }
+                    </ListItem>
                 ))}
             </List>}
             <Stack direction="row" spacing={2} sx={{marginTop:2,marginBottom:3}}>
@@ -398,12 +509,22 @@ export default function GrupoCadastro(){
                         { !(usuariosEncontrados.length === 0) && usuariosEncontrados.map(({id_usuario,nm_usuario}) => (
                             <ListItem sx={{ borderRadius: 2, border: "solid #bbbbbb", borderWidth: 1, marginBottom: 1, paddingLeft: 1,width:470,maxWidth:470, maxHeight:75,overflow:"auto","&:hover":{cursor:"pointer"}}}
                                 key={id_usuario}
-                                onClick={()=>{console.log(id_usuario)}}
+                                onClick={()=>{cadastrarAlunoGrupo(id_usuario,nm_usuario)}}
                                 disableGutters>
                                 <ListItemText primary={nm_usuario} />
                             </ListItem>
                         ))}
                     </List>
+                </Box>
+            </Modal>
+            <Modal open={openModalRemoverUsuario} onClose={()=>{setOpenModalRemoverUsuario(false)}}>
+                <Box sx={{position:"absolute",top:"50%",left:"50%",width:400,backgroundColor:"background.paper",border:"2px solid #000",borderRadius:3,boxShadow:24,transform:"translate(-50%, -50%)",p:4}}>
+                    <Typography variant="h5" sx={{textAlign:"center",marginBottom:2,marginTop:2}}>Deseja remover o aluno do grupo?</Typography>
+                    <Stack direction="row" spacing={2} sx={{marginTop:3,marginBottom:3,display:"flex",flexDirection:"column",flexWrap:"wrap",alignContent:"center"}}>
+                        <Button variant="contained" color="error" sx={{width:190}} onClick={removerAlunoGrupo}>
+                            Remover
+                        </Button>
+                    </Stack>
                 </Box>
             </Modal>
         </div>

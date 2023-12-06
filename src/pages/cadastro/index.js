@@ -1,12 +1,26 @@
 import "./style.css"
-import { useState,useEffect,useContext } from 'react';
+import { useState,useEffect,useContext,forwardRef } from 'react';
 import { useNavigate } from "react-router-dom"
 import { Button,TextField,Stack,Typography  } from "@mui/material";
 import { toast } from 'react-toastify';
 import { ContextoToastConfig } from "../../context";
+import { IMaskInput } from 'react-imask';
+
+const MaskTelefone = forwardRef(function MaskTelefone(props, ref) {
+    const { onChange, ...other } = props;
+    return (
+      <IMaskInput
+        {...other}
+        mask="(00)00000-0000"
+        onAccept={(value) => onChange({ target: { name: props.name, value } })}
+        inputRef={ref}
+        overwrite
+      />
+    );
+  });
 
 export default function CadastroUsuario(){
-
+    const [telefoneFiltrado,setTelefoneFiltrado] = useState("");
     const [Nome, setNome] = useState("");
     const [NomeErro, setNomeErro] = useState("");
     const [RA, setRA] = useState("");
@@ -27,6 +41,15 @@ export default function CadastroUsuario(){
     var usuarioSession;
     var usuarioPesquisado;
     var validacao = true;
+
+    const handleChangeTelefone = (event) => {
+        if(event.target.value === "("){
+            setTelefone("");
+        }else{
+            setTelefone(event.target.value);
+            setTelefoneFiltrado(event.target.value.replace(/\D/g,''));
+        }
+      };
 
     function verificaLogin(){
         usuarioSession = sessionStorage.getItem("usuario");
@@ -120,7 +143,7 @@ export default function CadastroUsuario(){
                 nm_usuario:Nome,
                 nr_ra:RA,
                 nm_email:Email,
-                nm_telefone:Telefone,
+                nm_telefone:telefoneFiltrado,
                 nm_senha:Senha
             }
             try {
@@ -169,7 +192,7 @@ export default function CadastroUsuario(){
                 nm_usuario:Nome,
                 nr_ra:RA,
                 nm_email:Email,
-                nm_telefone:Telefone,
+                nm_telefone:telefoneFiltrado,
                 nm_senha:Senha
             }
             try {
@@ -192,6 +215,22 @@ export default function CadastroUsuario(){
         }
     }
 
+    function validarEmail() {
+        if (!Email) {
+            setEmailErro("Digite o Email!");
+            return false
+        } else {
+            let antes = Email.indexOf("@");
+            let depois = Email.split("@")[1];
+
+            if (antes < 1 || depois !== 'fatec.sp.gov.br') {
+                toast.warning("Email invalido, use o institucional", { toastProps })
+                return false
+            }
+        }
+        return true;
+    }
+
     function validarDadaos(){
         validacao = true;
         if(!Nome){
@@ -212,8 +251,7 @@ export default function CadastroUsuario(){
         }else{
             setTelefoneErro("");
         }
-        if(!Email){
-            setEmailErro("Digite o Email!");
+        if(!validarEmail()){
             validacao = false;
         }else{
             setEmailErro("");
@@ -265,10 +303,13 @@ export default function CadastroUsuario(){
                     autoComplete="Telefone"
                     color="dark"
                     sx={{ margin: 2,width:500  }}
-                    onChange={e => setTelefone(e.target.value)}
+                    onChange={handleChangeTelefone}
                     value={Telefone}
                     helperText={TelefoneErro}
                     error={!!TelefoneErro}
+                    InputProps={{
+                        inputComponent: MaskTelefone,
+                      }}
                     {...(logado && perfilUsuario!==3) && {disabled:true}}
                 />
                 <TextField
@@ -313,6 +354,7 @@ export default function CadastroUsuario(){
                     onChange={e => setConfirmaSenha(e.target.value)}
                     helperText={ConfirmaSenhaErro}
                     error={!!ConfirmaSenhaErro}
+                    InputLabelProps={{sx:{width:140}}}
                 />
             <Stack direction="row" spacing={2}>
                 <Button variant="contained" color="success" sx={{ margin: 2 }}  onClick={()=>{logado?alterarDados():gerarCadastro()}}>
