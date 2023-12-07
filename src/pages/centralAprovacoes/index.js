@@ -100,32 +100,8 @@ export default function CentralAprovacoes(){
         setOpen(true);
     }
 
-    async function gerarPdfVinculo(){
-        try {
-            const response = await fetch(process.env.REACT_APP_BACKEND_URL+"pdf-vinculo-tg-i-ii/49/true", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                }
-            });
-            if(response.ok){
-                var pdf = await response.blob();
-                var link=document.createElement('a');
-                link.href=window.URL.createObjectURL(pdf);
-                link.download="Vinculo.pdf";
-                link.click();
-            }else{
-                toast.error("Erro ao gerar PDF",{toastProps})
-            }
-        }catch(error){
-            console.log(error);
-            toast.error("Erro ao gerar PDF",{toastProps});
-        }
-    }
-
     return (   
         <Grid sx={{display:"flex",flexDirection:"column",flexWrap:"wrap",alignContent:"center",marginTop:2,maxWidth:"700px",maxHeight:"700px",width:"100%",height:"100%",borderRadius:"10px",backgroundColor:"#f5f5f5"}}>
-            <Button onClick={gerarPdfVinculo}>Gerar Vinculo</Button>
             <Typography variant="h5" sx={{textAlign:"center",marginBottom:2,marginTop:2}}>Central de Aprovações</Typography>
             <Tabs value={tabAtiva} onChange={(e,valor)=>{alterarAba(valor)}} centered sx={{marginBottom:2}}>
                 <Tab label="Aprovar Cadastro" value={1} index={1}/>
